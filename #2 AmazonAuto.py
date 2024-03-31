@@ -9,6 +9,16 @@ from Tools_Init import startInit
 import re
 import urllib.parse
 
+import selenium
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver import ActionChains
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.support import expected_conditions
+from bs4 import BeautifulSoup
+
 ## ! 步骤二依次获取链接信息，存储到汇总
 
 config = startInit()
@@ -28,6 +38,22 @@ sheet_info = sheet_info.astype('object')
 #for col in sheet_info.columns: #等同于
 #    sheet_info[col] = sheet_info[col].astype('str')
 #sheet_info['更新信息'] = sheet_info['更新信息'].astype(str)
+
+options = webdriver.ChromeOptions()
+options.binary_location = r'D:\Code\chrome-win\chrome.exe'
+options.debugger_address = '127.0.0.1:9222'
+options.browser_version = '114.0.5734.0'
+#禁用Chrome浏览器的自动控制提示。当使用selenium开启Chrome浏览器时，浏览器的信息栏上方会有一条提示：“Chrome正在受到自动测试软件的控制”
+#options.add_experimental_option("excludeSwitches", ["enable-automation"])
+#禁用Selenium提供的自动化扩展。Selenium默认会载入一些用于自动化控制的浏览器扩展
+#options.add_experimental_option('useAutomationExtension', False)
+service = Service(executable_path=r'D:\Code\chromedriver_win32\114\chromedriver.exe')
+driver = webdriver.Chrome(service=service, options=options)
+driver.get("https://www.amazon.com")
+us_cookies = driver.get_cookies()
+driver.get("https://www.amazon.co.uk")
+uk_cookies = driver.get_cookies()
+
 
 for index, row in sheet_array.iterrows():
     url = None if pd.isna(row['链接']) else row['链接']  # 链接地址
@@ -71,7 +97,7 @@ for index, row in sheet_array.iterrows():
     picture_file_path = config['picture_file_path']
     image_dir = f'{picture_file_path}/{ASIN}/'
     if isSmallImg and 主图450 is not None:
-        picdownload(new_url,ASIN,country, 主图450, image_dir, '450')  # type: ignore[arg-type]
+        picdownload(us_cookies,uk_cookies,new_url,ASIN,country, 主图450, image_dir, '450')  # type: ignore[arg-type]
         #def picdownload(url, asin, country, img_list: list, image_dir, filename):
 
 
