@@ -48,12 +48,20 @@ options.browser_version = '114.0.5734.0'
 #禁用Selenium提供的自动化扩展。Selenium默认会载入一些用于自动化控制的浏览器扩展
 #options.add_experimental_option('useAutomationExtension', False)
 service = Service(executable_path=r'D:\Code\chromedriver_win32\114\chromedriver.exe')
+#driver = webdriver.Chrome(service=service, options=options)设置超时时间20s，如果WebDriverException，
+# 启动program_path = "C:/Program Files/Google/Chrome/Application/chrome.exe"
+# program_args = [
+#        "--remote-debugging-port=9222",
+#        "--user-data-dir=D:/Code/selenium/AutomationProfile",
+#    ]的程序，且该程序只能存在一个
+
 driver = webdriver.Chrome(service=service, options=options)
 driver.get("https://www.amazon.com")
 us_cookies = driver.get_cookies()
 driver.get("https://www.amazon.co.uk")
 uk_cookies = driver.get_cookies()
 
+driver.close
 
 for index, row in sheet_array.iterrows():
     url = None if pd.isna(row['链接']) else row['链接']  # 链接地址
