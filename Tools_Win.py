@@ -19,18 +19,21 @@ def get_files_by_extension(folder_path,file_extension):
 
 def get_files_by_name(folder_path,file_name):
     # sourcery skip: list-comprehension
-    file_list = os.listdir(folder_path)
-    files = []
-    for file in file_list:
-        if file_name in file:
-            file_path = os.path.join(folder_path, file)
-            files.append(file_path)
-    '''
-    for filename in file_list:
-        if '1500' in filename:
-            files.append(filename)
-    '''
-    return files
+    try:
+        file_list = os.listdir(folder_path)
+        files = []
+        for file in file_list:
+            if file_name in file:
+                file_path = os.path.join(folder_path, file)
+                files.append(file_path)
+        '''
+        for filename in file_list:
+            if '1500' in filename:
+                files.append(filename)
+        '''
+        return files
+    except Exception:
+        return None
             
 # 测试代码
 if __name__ == '__main__':

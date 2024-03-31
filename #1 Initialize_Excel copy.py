@@ -9,11 +9,15 @@ import urllib.parse
 ## ! 步骤一格式化链接
 config = startInit()
 
-def format_url(url):
-    if 'sspa' in url:
+def format_url(url:str):
+    if 'aax-us-iad.' in url:
+        url = url.replace('aax-us-iad', 'www')
+    if 'sspa' in url and 'dp%2F' in url:
         asin_pattern = re.compile(r'dp%2F([A-Za-z0-9]{10})')
-    else:
+    elif 'www.amazon.com' in url or 'www.amazon.co.uk' in url:
         asin_pattern = re.compile(r'/dp/([A-Z0-9]{10})')
+    else:
+        return None, None, None
     match = asin_pattern.search(url)
     asin = match[1] if match else None
     parsed_url = urllib.parse.urlparse(url)
@@ -67,8 +71,10 @@ def Initialize_Excel(sheet_ASIN_path):
             # .at[] 是针对单个元素进行赋值的方法，只能更新一个单元格的值。
             # .loc[] 是针对切片进行赋值的方法，可以同时更新多个单元格的值。'''
         
-        Link,ASIN,Country = format_url(Link)
-
+        Link,ASIN,Country = format_url(link)
+        if Link is None:
+            sheet_ASIN.cell(row=row_index, column=4).value = 'link error' # type: ignore
+            continue
         sheet_ASIN.cell(row=row_index, column=1).value = Link # type: ignore
         sheet_ASIN.cell(row=row_index, column=2).value = ASIN # type: ignore
         sheet_ASIN.cell(row=row_index, column=3).value = Country # type: ignore
@@ -106,4 +112,5 @@ if __name__ == '__main__':
     #Initialize_Excel(r'D:\AutoRPA\产品信息\产品竞品\ASIN_Info-ZM21001.xlsx')
     #Initialize_Excel(r'D:\AutoRPA\产品信息\产品竞品\ASIN_Info-粘球枪.xlsx')
     #Initialize_Excel(r'D:\AutoRPA\产品信息\产品竞品\ASIN_Info-螃蟹.xlsx')
-    Initialize_Excel(r'D:\AutoRPA\产品信息\产品竞品\ASIN_Info-乐高花束2.xlsx')
+    #Initialize_Excel(r'D:\AutoRPA\产品信息\产品竞品\ASIN_Info-乐高花束2.xlsx')
+    Initialize_Excel(r'D:\AutoRPA\产品信息\产品竞品\ASIN_Info-总asin.xlsx')

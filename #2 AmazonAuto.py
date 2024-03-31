@@ -71,13 +71,15 @@ for index, row in sheet_array.iterrows():
     picture_file_path = config['picture_file_path']
     image_dir = f'{picture_file_path}/{ASIN}/'
     if isSmallImg and 主图450 is not None:
-        picdownload(ASIN, 主图450, image_dir, '450', country, new_url)  # type: ignore[arg-type]
+        picdownload(new_url,ASIN,country, 主图450, image_dir, '450')  # type: ignore[arg-type]
+        #def picdownload(url, asin, country, img_list: list, image_dir, filename):
 
-    if isBigImg and 主图1500 is not None:
-        picdownload(ASIN, 主图1500, image_dir, '1500')  # type: ignore[arg-type]
 
-    if 详情图片 is not None:
-        picdownload(ASIN, 详情图片, image_dir, '详情')  # type: ignore[arg-type]
+    #if isBigImg and 主图1500 is not None:
+    #    picdownload(ASIN, 主图1500, image_dir, '1500')  # type: ignore[arg-type]
+
+    #if 详情图片 is not None:
+    #    picdownload(ASIN, 详情图片, image_dir, '详情')  # type: ignore[arg-type]
 
     pdupdate(sheet_info, result, sheet_info_path)
     

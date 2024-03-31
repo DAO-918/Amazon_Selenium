@@ -15,7 +15,6 @@ from multiprocessing import Process
 from PIL import Image
 from PIL import Image
 from io import BytesIO
-import cv2
 import numpy as np
 import os
 
@@ -100,14 +99,14 @@ def OpenDriver(valurl: str):
     else:
         driver.get(valurl)
     # 1. 初始化WebDriverWait,设置最长等待时间为5秒:
-    wait = WebDriverWait(driver, 20)
+    wait = WebDriverWait(driver, 60)
     # 2. 使用until方法设置等待条件:
     wait.until(EC.presence_of_all_elements_located((By.TAG_NAME, 'body')))
     
     # expected_conditions检查网页元素是否可见
     #condition=expected_conditions.visibility_of_element_located((By.ID,'kw'))
     #WebDriverWait(driver=driver,timeout=20,poll_frequency=0.5).until(condition)
-    #隐性等待，最长等待时间为30秒
+    #!隐性等待，最长等待时间为30秒
     #driver.implicitly_wait(30)  
 
 
@@ -150,7 +149,7 @@ def AMZInfo(
             isRefresh = False
         driver.refresh()
         wait.until(EC.presence_of_all_elements_located((By.TAG_NAME, 'body')))
-        time.sleep(20)  # Wait for 10 seconds before refreshing
+        time.sleep(60)  # !Wait for 10 seconds before refreshing
 
         
     print(title)

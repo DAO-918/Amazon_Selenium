@@ -71,48 +71,7 @@ def excel_auto(file_name):
     sheet_info_path = info_file_path + 'ASIN_Array_信息汇总.xlsx'
     sheet_info = pd.read_excel(sheet_info_path, sheet_name='Sheet1')
 
-    # file_name =  'ASIN_Info-重力百变轨道.xlsx'
-    # file_name =  'ASIN_Info-.xlsx'
-    # file_name =  'ASIN_Info-存钱罐.xlsx'
-    # file_name =  'ASIN_Info-多米诺火车.xlsx'
-    # file_name =  'ASIN_Info-高速轨道.xlsx'
-    # file_name =  'ASIN_Info-恐龙手部装扮.xlsx'
-    # file_name =  'ASIN_Info-忙碌电子板.xlsx'
-    # file_name =  'ASIN_Info-忙碌机关板.xlsx'
-    # file_name =  'ASIN_Info-忙碌毛毡书.xlsx'
-    # file_name =  'ASIN_Info-汽车闯关大冒险.xlsx'
-    # file_name =  'ASIN_Info-新抓取轨道.xlsx'
-    # file_name =  'ASIN_Info-遥控车.xlsx'
-    # file_name =  'ASIN_Info-遥控翻斗车.xlsx'
-    # file_name =  'ASIN_Info-遥控两栖.xlsx'
-    # file_name =  'ASIN_Info-遥控双轮特技车.xlsx'
-    # file_name =  'ASIN_Info-遥控特技.xlsx'
-    # file_name =  'ASIN_Info-遥控小车.xlsx'
-    # file_name =  'ASIN_Info-暂存.xlsX'
-    # file_name =  'ASIN_Info-电子魔方.xlsX'
-    # file_name =  'ASIN_Info-益智迷宫.xlsX'
-    # file_name =  'ASIN_Info-遥控越野.xlsX'
-    # file_name =  'ASIN_Info-爵士鼓钢琴音乐垫.xlsX'
-    # file_name =  'ASIN_Info-遥控越野.xlsX'
-    # file_name =  'ASIN_Info-飞碟发射器.xlsX'
-    # file_name =  'ASIN_Info-射击靶空气枪.xlsX'
-    # file_name =  'ASIN_Info-物理科学实验套装.xlsX'
-    # file_name =  'ASIN_Info-传统蒸汽火车.xlsX'
-    # file_name =  'ASIN_Info-恐龙卡车.xlsX'
-    # file_name =  'ASIN_Info-大型维修套装.xlsX'
-    # file_name =  'ASIN_Info-遥控翻斗车.xlsX'
-    # file_name =  'ASIN_Info-物理科学实验套装.xlsX'
-    # file_name =  'ASIN_Info-螺丝拼装套装.xlsX'
-    # file_name =  'ASIN_Info-HL808迭代.xlsX'
-    # file_name =  'ASIN_Info-乐高花束.xlsX'
-    # file_name =  'ASIN_Info-玩偶小屋.xlsX'
-    # file_name =  'ASIN_Info-高级电子教学.xlsX'
-    # file_name =  'ASIN_Info-Wal.xlsX'
-    # file_name =  'ASIN_Info-汇乐.xlsX'
-    file_name = file_name + '.xlsX'
-
-    # sheet_ASIN_path'产品竞品\\' + ''
-    sheet_ASIN_path = f'{config["info_file_path"]}产品竞品\\{file_name}'
+    sheet_ASIN_path = os.path.join('D:\AutoRPA\产品信息\产品竞品', file_name)
 
     # 当data_only=True时，工作簿将只加载公式单元格的计算结果，而不加载公式本身
     # 如果需要修改或操作公式，使用默认的data_only=False参数来加载工作簿。
@@ -147,9 +106,11 @@ def excel_auto(file_name):
             排名 = [None, None]
 
         # 图片
-        pic_floder = f'{picture_file_path}{ASIN}'
-        pic_files = get_files_by_name(pic_floder, '1500')
-        pyxl_draw(sheet_ASIN_path, wb, 'Sheet1', ASIN, pic_files, row_index, 11, min(len(pic_files), 8), 46, 8, False)  # type: ignore
+        #pic_floder = f'{picture_file_path}{ASIN}'
+        pic_floder = os.path.join('D:\AutoRPA\产品图片', str(ASIN))
+        pic_files = get_files_by_name(pic_floder, '450')
+        if pic_files is not None:
+            pyxl_draw(sheet_ASIN_path, wb, 'Sheet1', ASIN, pic_files, row_index, 11, min(len(pic_files), 8), 46, 8, False)  # type: ignore
 
         seller_canvas_path = f'D:\\AutoRPA\\卖家精灵\\{ASIN}\\seller_canvas.png'
         if os.path.exists(seller_canvas_path):
@@ -261,78 +222,51 @@ def excel_auto(file_name):
                 ]
 
     # sheet_ASIN_path = f'{config["info_file_path"]} 产品竞品\\{ASIN_Info-TOP22003_2.xlsx}'
-
+    
+    flag = True
     # 设置自动换行的列
-    columns_to_wrap = [
-        'A',
-        'E',
-        'G',
-        'H',
-        'I',
-        'J',
-        'T',
-        'U',
-        'V',
-        'W',
-        'X',
-        'Y',
-        'AK',
-        'AL',
-    ]
-    for column in columns_to_wrap:
-        for cell in sheet_ASIN[column]:
-            cell.alignment = Alignment(wrap_text=True, vertical='top')
+    if flag == True:
+        columns_to_wrap = [
+            'A',
+            'E',
+            'G',
+            'H',
+            'I',
+            'J',
+            'T',
+            'U',
+            'V',
+            'W',
+            'X',
+            'Y',
+            'AK',
+            'AL',
+        ]
+        for column in columns_to_wrap:
+            for cell in sheet_ASIN[column]:
+                cell.alignment = Alignment(wrap_text=True, vertical='top')
 
-    # 设置字体大小的列
-    columns_size_9 = ['S', 'T', 'U', 'V', 'W', 'X', 'Y']
-    font_size = 9
-    for column in columns_size_9:
-        for cell in sheet_ASIN[column]:
-            cell.font = Font(size=font_size)
+        # 设置字体大小的列
+        columns_size_9 = ['S', 'T', 'U', 'V', 'W', 'X', 'Y']
+        font_size = 9
+        for column in columns_size_9:
+            for cell in sheet_ASIN[column]:
+                cell.font = Font(size=font_size)
 
-    # 设置None替换为空
-    for row in sheet_ASIN.rows:
-        for cell in row:
-            if cell.value == 'None':
-                cell.value = ''
+        # 设置None替换为空
+        for row in sheet_ASIN.rows:
+            for cell in row:
+                if cell.value == 'None':
+                    cell.value = ''
 
-    # 设置列宽
-    sheet_ASIN.column_dimensions['B'].width = 10
-    sheet_ASIN.column_dimensions['C'].width = 4
-    sheet_ASIN.column_dimensions['D'].width = 6
-    sheet_ASIN.column_dimensions['I'].width = 10
+        # 设置列宽
+        sheet_ASIN.column_dimensions['B'].width = 10
+        sheet_ASIN.column_dimensions['C'].width = 4
+        sheet_ASIN.column_dimensions['D'].width = 6
+        sheet_ASIN.column_dimensions['I'].width = 10
 
     wb.save(sheet_ASIN_path)
 
 
 if __name__ == '__main__':
-    #excel_auto('ASIN_Info-组合拼装')
-    #excel_auto('ASIN_Info-电子绘本')
-    #excel_auto('ASIN_Info-研磨机')
-    #excel_auto('ASIN_Info-物理实验')
-    #excel_auto('ASIN_Info-动物机器人')
-    #excel_auto('ASIN_Info-读卡器')
-    #excel_auto('ASIN_Info-平衡桌游')
-    #excel_auto('ASIN_Info-暂存2')
-    #excel_auto('ASIN_Info-教学机器人')
-    #excel_auto('ASIN_Info-特技机器人')
-    #excel_auto('ASIN_Info-APP机器人')
-    #excel_auto('ASIN_Info-机器人')
-    #excel_auto('ASIN_Info-多功能机器人')
-    #excel_auto('ASIN_Info-益智零件拼装')
-    #excel_auto('ASIN_Info-进阶益智拼装')
-    #excel_auto('ASIN_Info-机械臂')
-    #excel_auto('ASIN_Info-进阶机器人')
-    #excel_auto('ASIN_Info-乐高花束')
-    #excel_auto('ASIN_Info-汽车闯关大冒险')
-    #excel_auto('ASIN_Info-带射击特技车')
-    #excel_auto('ASIN_Info-暂存3')
-    #excel_auto('ASIN_Info-遥控变形特技车')
-    #excel_auto('ASIN_Info-益智华容道')
-    #excel_auto('ASIN_Info-圣诞树')
-    #excel_auto('ASIN_Info-电子绘本')
-    #excel_auto('ASIN_Info-电子绘本')
-    #excel_auto('ASIN_Info-遥控带摄像')
-    #excel_auto('ASIN_Info-带射击特技车')
-    #excel_auto('ASIN_Info-六面体')
-    excel_auto('ASIN_Info-螃蟹')
+    excel_auto('ASIN_Info-测试.xlsx')
