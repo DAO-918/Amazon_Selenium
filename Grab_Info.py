@@ -13,18 +13,17 @@ from selenium.webdriver.support import expected_conditions
 
 from multiprocessing import Process
 from PIL import Image
-from PIL import Image
 from io import BytesIO
 import numpy as np
 import os
 
 from time import sleep
 
-class AMZInfo(object):
+class AMZInfo():
 
     # 产品详情页抓取
-    def __init__(self):
-                # 绑定现有Chrome浏览器
+    def __init__(self,drive,service):
+        
         self.options = webdriver.ChromeOptions()
         # 屏蔽受控提示：正受到自动测试软件的控制
         #options.add_experimental_option('useAutomationExtension', False)
@@ -36,20 +35,12 @@ class AMZInfo(object):
         # 指定目录已被占用，关闭所有浏览器窗口，重新发起浏览器会话即可；
         #user_conf = r'--user-data-dir="E:\Code\selenium\AutomationProfile 114"'
         #options.add_argument(user_conf)
-        
+        #D:\Code\chrome-win\chrome.exe --remote-debugging-port=9222 --user-data-dir="E:\Code\selenium\AutomationProfile 114 Seller 9222
         self.options.binary_location = r'D:\Code\chrome-win\chrome.exe'
         #options.binary_location = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
         self.options.debugger_address = '127.0.0.1:9222'
         self.options.browser_version = '114.0.5734.0'
         
-        # 旧版本
-        #chrome_driver_path = r'D:\Code\chromedriver_win32\114\chromedriver.exe'
-        #driver = webdriver.Chrome(executable_path=chrome_driver_path, options=options) # type: ignore
-        # 4.1版本
-        self.service = Service(executable_path=r'D:\Code\chromedriver_win32\114\chromedriver.exe')
-        
-        #driver = webdriver.Chrome(service=service, options=options)
-
         # timeout = 5  # 设置超时时间
         '''driver_exise = False
         while not driver_exise:
@@ -67,9 +58,19 @@ class AMZInfo(object):
                 # 使用进程代替线程,这可以更好地隔离进程内的问题,防止主进程被阻塞:
                 p = Process(target=start_chrome_program)
                 p.start()'''
-                
-        self.driver = self.start_driver()
-        
+        if drive is not None and service is not None:
+            self.driver = drive
+            self.service = service
+            # 绑定现有Chrome浏览器
+        else:
+            # 旧版本
+            #chrome_driver_path = r'D:\Code\chromedriver_win32\114\chromedriver.exe'
+            #driver = webdriver.Chrome(executable_path=chrome_driver_path, options=options) # type: ignore
+            # 4.1版本
+            self.service = Service(executable_path=r'D:\Code\chromedriver_win32\114\chromedriver.exe')
+            #driver = webdriver.Chrome(service=service, options=options)
+            self.driver = self.start_driver()
+            
         #driver.maximize_window()
         # 打开新的标签页
         # driver.execute_script("window.open()") 通过执行JavaScript,在当前浏览器打开一个新的空白标签页。
@@ -81,16 +82,18 @@ class AMZInfo(object):
 
     def start_chrome_program(self):
         # 定义程序路径和参数
-        program_path = "C:/Program Files/Google/Chrome/Application/chrome.exe"
+        program_path = "D:\Code\chrome-win\chrome.exe"
         program_args = [
             "--remote-debugging-port=9222",
-            "--user-data-dir=D:/Code/selenium/AutomationProfile",
+            "--user-data-dir=E:\Code\selenium\AutomationProfile 114 Seller 9222",
         ]
         # 使用 subprocess 执行外部命令
-        subprocess.run([program_path] + program_args)
+        #subprocess.run([program_path] + program_args)
+        shortcut_path = "D:\Code\chrome - New Selenium 2.lnk"
+        subprocess.run(shortcut_path)
         return True
 
-    def start_driver(self, timeout=20):
+    def start_driver(self, timeout=5):
         for _ in range(timeout):
             try:
                 driver = webdriver.Chrome(service=self.service, options=self.options)
@@ -99,7 +102,7 @@ class AMZInfo(object):
                 # 确保只有一个Chrome程序正在运行
                 os.system('taskkill /f /im chrome.exe')
                 self.start_chrome_program()
-                sleep(2)
+                sleep(10)
         # 返回None如果在超时时间内都无法成功启动driver
         raise Exception("Failed to start driver within timeout.")
     #PylancereportOptionalMemberAccess
@@ -127,7 +130,7 @@ class AMZInfo(object):
                     time.sleep(3)  # 等待3秒重试
         else:
             driver.get(valurl)'''
-        for i in range(1,3):
+        for i in range(1,5):
             try:
                 driver.get(valurl)
                 break
@@ -137,15 +140,16 @@ class AMZInfo(object):
                 os.system('taskkill /f /im chrome.exe')
                 # 启动新的Chrome程序
                 self.start_chrome_program()
-                sleep(2) # 等待2秒以确保程序启动
+                sleep(10) # 等待2秒以确保程序启动
                 # 重新启动driver
-                driver = self.start_driver()
+                #driver = self.start_driver()
+                driver = webdriver.Chrome(service=self.service, options=self.options)
                 # 如果driver启动失败，则抛出异常
                 if driver is None:
                     print("Failed to start driver within timeout.")
                     break
         # 1. 初始化WebDriverWait,设置最长等待时间为5秒:
-        self.wait = WebDriverWait(driver, 60)
+        self.wait = WebDriverWait(driver, 20)
         # 2. 使用until方法设置等待条件:
         self.wait.until(EC.presence_of_all_elements_located((By.TAG_NAME, 'body')))
         
@@ -170,7 +174,7 @@ class AMZInfo(object):
             f.write(source)
         '''
         driver = self.driver
-        
+        wait = self.wait
         actions = ActionChains(self.driver)
         
         # 编译正则表达式提取ASIN
@@ -196,12 +200,10 @@ class AMZInfo(object):
             else:
                 isRefresh = False
             driver.refresh()
-            self.wait.until(EC.presence_of_all_elements_located((By.TAG_NAME, 'body')))
+            wait.until(EC.presence_of_all_elements_located((By.TAG_NAME, 'body')))
             time.sleep(60)  # !Wait for 10 seconds before refreshing
-
             
         print(title)
-        
         
         sale_price = None
         rrp_price = None
@@ -216,7 +218,7 @@ class AMZInfo(object):
             is_Deal = temp == 'Deal'
         except Exception:
             is_Deal = False
-
+            
         prime_price = None
         try:
             prime_element = driver.find_element(
@@ -244,7 +246,7 @@ class AMZInfo(object):
                 isAvailable = False
             elif 'stock' in unavailable_text:
                 isAvailable = True
-
+                
         if isAvailable:
             try:
                 # 检查是否有折扣标识
@@ -313,7 +315,7 @@ class AMZInfo(object):
                         sale_price = sale_price_element.text
                     except Exception as e:
                         print('=1=')
-
+                        
             print(f'Is In Deal: {is_Deal}')
             print(f'Sale Price: {sale_price}')
             print(f'RRP Price: {rrp_price}') if rrp_price else print('No RRP Price')
@@ -327,9 +329,9 @@ class AMZInfo(object):
             rating = parent.find_element(
                 By.XPATH, '//*[@id="acrPopover"]/span[1]/a/span'
             ).text
-
+            
             review = parent.find_element(By.XPATH, '//*[@id="acrCustomerReviewText"]').text
-
+            
         except Exception:
             print('No rating review element found')
         else:
@@ -613,13 +615,13 @@ class AMZInfo(object):
             
         if is_Seller:
             try:
-                self.wait.until(EC.presence_of_all_elements_located((By.XPATH, '//*[@id="quick-view-page"]')))
+                wait.until(EC.presence_of_all_elements_located((By.XPATH, '//*[@id="quick-view-page"]')))
                 seller_parent = driver.find_element(By.XPATH,'//*[@id="quick-view-page"]')
                 seller_Linechart = driver.find_element(By.XPATH,'//*[@id="quick-view-page"]/div[2]/div/div[1]/div[1]/div[2]/span')
                 actions.move_to_element(seller_Linechart)
                 actions.click(seller_Linechart)
                 actions.perform()
-                self.wait.until(EC.presence_of_all_elements_located((By.XPATH, '//*[@id="quick-view-page"]/div[2]/div/div[2]/div/div/div/div/div/div[1]/canvas')))
+                wait.until(EC.presence_of_all_elements_located((By.XPATH, '//*[@id="quick-view-page"]/div[2]/div/div[2]/div/div/div/div/div/div[1]/canvas')))
                 seller_canvas = seller_parent.find_element(By.XPATH, '//*[@id="quick-view-page"]/div[2]/div/div[2]/div/div/div/div/div/div[1]/canvas')
                 seller_selector = seller_parent.find_element(By.CLASS_NAME,'rang-div')
                 seller_selector_p = seller_selector.find_elements(By.TAG_NAME,'p')
@@ -697,7 +699,7 @@ class AMZInfo(object):
                 actions.perform()
 
                 # 等待a-popover-content元素出现 //*[@id="ivImagesTabHeading"]/a
-                self.wait.until(
+                wait.until(
                     EC.presence_of_element_located(
                         (By.XPATH, '//*[@id="ivImagesTabHeading"]/a')
                     )
@@ -718,7 +720,7 @@ class AMZInfo(object):
                     actions.click(element)
                     actions.perform()
                     time.sleep(0.5)
-                    self.wait.until(
+                    wait.until(
                         EC.presence_of_element_located(
                             (By.XPATH, '//*[@id="ivLargeImage"]/img')
                         )
@@ -798,7 +800,7 @@ class AMZInfo(object):
             print(f'description_srt : {description_srt}')
             print(f'image_description : ,{image_description}')
             
-
+        sleep(2)
         # 关闭当前标签页
         driver.close()
 

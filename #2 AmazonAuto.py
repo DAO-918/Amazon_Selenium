@@ -61,9 +61,11 @@ us_cookies = driver.get_cookies()
 driver.get("https://www.amazon.co.uk")
 uk_cookies = driver.get_cookies()
 
-driver.close
+#driver.close
 
-for index, row in sheet_array.iterrows():
+amz = AMZInfo(driver,service)
+
+for index, (row_index, row) in enumerate(sheet_array.iterrows(),start=2):
     url = None if pd.isna(row['链接']) else row['链接']  # 链接地址
     updateTime = False if pd.isna(row['更新时间']) else row['更新时间']   # 是否更新(日期) # 45090 指 2023/6/13
     updateCycle = False if pd.isna(row['更新周期']) else int(row['更新周期'])  # 主图450(整数型)
@@ -77,7 +79,7 @@ for index, row in sheet_array.iterrows():
 
     result = {}
     if url and isUpdate:
-        result = AMZInfo(url, isSmallImg, isBigImg, isKeepa, isSeller)  # type: ignore
+        result = amz.GarbInfo(url, isSmallImg, isBigImg, isKeepa, isSeller)  # type: ignore
     else:
         continue
 
@@ -116,7 +118,9 @@ for index, row in sheet_array.iterrows():
     #    picdownload(ASIN, 详情图片, image_dir, '详情')  # type: ignore[arg-type]
 
     pdupdate(sheet_info, result, sheet_info_path)
-    
+    sheet_array.loc[index, '是否更新'] = False
+    sheet_array.to_excel(sheet_info_path, index=False)
+
     time.sleep(5)
 
 #sheet_info = pdformat(sheet_info)
