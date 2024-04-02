@@ -1,10 +1,15 @@
 import datetime
+# datetime.datetime.now().strftime("%Y%m%d_%H%M")
+# from datetime import datetime
+# datetime.now().strftime("%Y%m%d_%H%M")
 import time
 import pandas as pd
 from Tools_Web import picdownload
 from Tools_Execl import pdupdate
 from Tools_Execl import pdformat
 from Tools_Init import startInit
+from Chaojiying import  Chaojiying_Client
+
 import re
 import urllib.parse
 
@@ -20,9 +25,13 @@ from bs4 import BeautifulSoup
 
 import os
 import subprocess
+import base64
 from io import BytesIO
 from PIL import Image
 from time import sleep
+
+import requests
+from urllib.parse import unquote
 
 ## ! 步骤二依次获取链接信息，存储到汇总
 
@@ -32,6 +41,94 @@ sheet_array_path = config['info_file_path'] + 'ASIN_Array_抓取队列.xlsx'
 sheet_info_path = config['info_file_path'] + 'ASIN_Array_信息汇总.xlsx'
 sheet_array = pd.read_excel(sheet_array_path, sheet_name='Sheet1')
 sheet_info = pd.read_excel(sheet_info_path, sheet_name='Sheet1')
+
+chaojiying_seller = Chaojiying_Client('WhiteST', 'QSCZSE123', '958866')
+captcha_code_seller = 'D:\Code\# OUTPUT\Amazon_Refactor\验证码\卖家精灵'
+captcha_code_seller_path = os.path.join(captcha_code_seller, 'temp.jpg')
+chaojiying_amazon = Chaojiying_Client('WhiteST', 'QSCZSE123', '958867')
+captcha_code_amazon = 'D:\Code\# OUTPUT\Amazon_Refactor\验证码\亚马逊'
+captcha_code_amazon_path = os.path.join(captcha_code_amazon, 'temp.jpg')
+
+
+# !文件重命名
+# rename_file(captcha_code_seller, 'temp.jpg', captcha_code+datetime.now().strftime("%Y%m%d_%H%M")+'.jpg')
+def rename_file_basedir(directory, old_filename, new_filename):
+    old_file = os.path.join(directory, old_filename)
+    new_file = os.path.join(directory, new_filename)
+    os.rename(old_file, new_file)
+
+# !下载验证码图片
+def analyze_url_and_save_image(url, save_path):
+    if url.startswith('data:image'):
+        base64_str = url.split('base64,')[-1]
+        base64_str = unquote(base64_str)
+        imgdata = base64.b64decode(base64_str)
+        with open(save_path, 'wb') as file:
+            file.write(imgdata)
+    else:
+        response = requests.get(url)
+        with open(save_path, 'wb') as file:
+            file.write(response.content)
+
+# !检测captcha元素是否存在
+def captcha_element_display(driver, xpath_name):
+    if xpath_name == '卖家精灵':
+        seller_container = None
+        captcha_image = None
+        captcha_displayed = None
+        try:
+            seller_container = driver.find_element(By.XPATH, "//div[contains(@class, 'robot-card-container') and contains(@style, 'display: block;')]")
+            captcha_image = seller_container.find_element(By.XPATH, "../img[contains(@class, 'h-100 show-hand-shape')]")
+            # "可见" 并不等于 "存在"。一个元素可能在 DOM 中（存在），
+            # 但是通过 CSS 属性（比如 display: none 或 visibility: hidden）被隐藏，那么它就不是 "可见"。
+            captcha_displayed = captcha_image.is_displayed()
+        except Exception as e:
+            print(f'没有找到验证码元素: {str(e.msg)}')
+        if seller_container is not None and captcha_image is not None and captcha_displayed:
+            # 获取url
+            try:
+                image_url = captcha_image.get_attribute('src')
+                captcha_code_seller = 'D:\Code\# OUTPUT\Amazon_Refactor\验证码\卖家精灵'
+                captcha_code_seller_path = os.path.join(captcha_code_seller, 'temp.jpg')
+                # 判断url类型并下载
+                #analyze_url_and_save_image(image_url, captcha_code_seller_path)
+                if image_url.startswith('data:image'):
+                    base64_str = image_url.split('base64,')[-1]
+                    base64_str = unquote(base64_str)
+                    imgdata = base64.b64decode(base64_str)
+                    with open(captcha_code_seller_path, 'wb') as file:
+                        file.write(imgdata)
+                else:
+                    response = requests.get(image_url)
+                    with open(captcha_code_seller_path, 'wb') as file:
+                        file.write(response.content)
+                # 请求超级鹰
+                chaojiying = Chaojiying_Client('WhiteST', 'QSCZSE123', '958866')	
+                im = open(captcha_code_seller_path, 'rb').read()													
+                result = chaojiying.PostPic(im, 1902)
+                err_no = result['err_no']
+                pic_str = result['pic_str']
+                # 识别成功重命名验证码图片
+                if err_no == 0: 
+                    new_filename = f"{pic_str}_{datetime.datetime.now().strftime('%Y%m%d_%H%M')}.jpg"
+                    captcha_code_seller_path_new = os.path.join(captcha_code_seller, new_filename)
+                    os.rename(captcha_code_seller_path, captcha_code_seller_path_new)
+                    input = seller_container.find_element(By.XPATH, "../input[contains(@class, 'text-uppercase)]")
+                    button = seller_container.find_element(By.XPATH, "../button[contains(@class, 'btn-ext btn-ext-primary)]")
+                    input.send_keys(pic_str)
+                    actions = ActionChains(driver)
+                    actions.move_to_element(button)
+                    actions.click(button)
+                    actions.perform()
+                    sleep(3)
+                    seller_div = driver.find_element(By.XPATH, "//div[@id='seller-sprite-extension-app']")
+                    seller_footer_cloes = seller_div.find_element(By.XPATH, "../div[contains(@class, 'sign-in-close']")
+                    actions.move_to_element(seller_footer_cloes)
+                    actions.click(seller_footer_cloes)
+                    actions.perform()
+                    sleep(3)
+            except Exception as e:
+                print(f'没有完成验证码验证: {str(e.msg)}')
 
 #- 'int32','int64' - 整数型
 #- 'float32','float64' - 浮点数型
@@ -189,6 +286,8 @@ def GarbInfo(driver, wait,
     if Country == 'com':
         Country = 'us'
     print(f'Country: {Country}')
+    
+    captcha_element_display(driver, '卖家精灵')
     
     # 1. 标题、价格 获取//*[@id="expandTitleToggle"]、//*[@id="corePriceDisplay_desktop_feature_div"]/div[1]/span[1]/span[1] 中的文本
     isRefresh = True

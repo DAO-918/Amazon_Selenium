@@ -269,4 +269,5 @@ def excel_auto(file_name):
 
 
 if __name__ == '__main__':
-    excel_auto('ASIN_Info-测试.xlsx')
+    #excel_auto('ASIN_Info-测试.xlsx')
+    excel_auto('ASIN_Info-总asin.xlsx')

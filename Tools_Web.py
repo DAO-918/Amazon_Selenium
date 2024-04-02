@@ -70,7 +70,7 @@ def picdownload(us_cookies, uk_cookies, url, asin, country, img_list: list, imag
             try:
                 # make request with headers and cookies
                 res = response = requests.get(pic_url, headers=headers, timeout=5)
-                #print(res.status_code)
+                print(res.status_code)
                 # https://blog.csdn.net/wantpython_king/article/details/132185135
                 # 在使用requests请求网页，并将图片保存到本地时，然后通过openyxl插入到excel，在最后的wb.save()时报错keyError: ‘.webp’，通过筛选找到报错的图片，发现本地有这个图片并且能正常打开，就是不能正常插入到excel中。
                 with open(file_path, 'wb') as f:
@@ -179,11 +179,11 @@ def picdownload(us_cookies, uk_cookies, url, asin, country, img_list: list, imag
             image_url = ws.cell(row=row_index, column=image_url_column).value
             image_download_column = columns.index(f'image_450_{i}_download')+1
             image_download = ws.cell(row=row_index, column=image_download_column).value
-            if image_download == False:
-                file_path = os.path.join(image_dir, f'image_450_{i}.jpg')
-                t = threading.Thread(target=download, args=(image_url, file_path, cookie, row_index, image_download_column))
-                threads.append(t)
-                t.start()
+            #if image_download == False:
+            #    file_path = os.path.join(image_dir, f'image_450_{i}.jpg')
+            #    t = threading.Thread(target=download, args=(image_url, file_path, cookie, row_index, image_download_column))
+            #    threads.append(t)
+            #    t.start()
 
     '''# 下载图片并更新状态
     threads = []  # 用来保存启动的线程
@@ -198,8 +198,8 @@ def picdownload(us_cookies, uk_cookies, url, asin, country, img_list: list, imag
                     #urllib.request.urlretrieve(img_link, file_path)
                     #ws.cell(row=row_index, column=columns.index(f'image_450_{i}_download')+1, value='TRUE')
         
-    for thread in threads:
-        thread.join()  # 等待所有线程结束
+    #for thread in threads:
+    #    thread.join()  # 等待所有线程结束
 
     # 保存xlsx文件
     wb.save(xlsx_file)

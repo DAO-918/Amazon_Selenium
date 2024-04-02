@@ -149,7 +149,7 @@ for row_index, row in enumerate(ws.iter_rows(min_row=2),start=2):
         image_url = ws.cell(row=row_index, column=image_url_column).value
         image_download_column = columns.index(f'image_450_{i}_download')+1
         image_download = ws.cell(row=row_index, column=image_download_column).value
-        if image_download == False:
+        if image_download == 'FALSE':
             file_path = os.path.join(image_dir, f'image_450_{i}.jpg')
             t = threading.Thread(target=download, args=(image_url, file_path, cookie, row_index, image_download_column))
             threads.append(t)
