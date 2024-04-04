@@ -33,6 +33,10 @@ from time import sleep
 import requests
 from urllib.parse import unquote
 
+import cv2  # pip install opencv-python
+# 
+import numpy as np
+
 ## ! 步骤二依次获取链接信息，存储到汇总
 
 config = startInit()
@@ -43,10 +47,10 @@ sheet_array = pd.read_excel(sheet_array_path, sheet_name='Sheet1')
 sheet_info = pd.read_excel(sheet_info_path, sheet_name='Sheet1')
 
 chaojiying_seller = Chaojiying_Client('WhiteST', 'QSCZSE123', '958866')
-captcha_code_seller = 'D:\Code\# OUTPUT\Amazon_Refactor\验证码\卖家精灵'
+captcha_code_seller = 'D:\\Code\\# OUTPUT\\Amazon_Refactor\\验证码\\卖家精灵'
 captcha_code_seller_path = os.path.join(captcha_code_seller, 'temp.jpg')
 chaojiying_amazon = Chaojiying_Client('WhiteST', 'QSCZSE123', '958867')
-captcha_code_amazon = 'D:\Code\# OUTPUT\Amazon_Refactor\验证码\亚马逊'
+captcha_code_amazon = 'D:\\Code\\# OUTPUT\\Amazon_Refactor\\验证码\\亚马逊'
 captcha_code_amazon_path = os.path.join(captcha_code_amazon, 'temp.jpg')
 
 
@@ -78,17 +82,17 @@ def captcha_element_display(driver, xpath_name):
         captcha_displayed = None
         try:
             seller_container = driver.find_element(By.XPATH, "//div[contains(@class, 'robot-card-container') and contains(@style, 'display: block;')]")
-            captcha_image = seller_container.find_element(By.XPATH, "../img[contains(@class, 'h-100 show-hand-shape')]")
+            captcha_image = seller_container.find_element(By.XPATH, ".//img[contains(@class, 'h-100 show-hand-shape')]")
             # "可见" 并不等于 "存在"。一个元素可能在 DOM 中（存在），
             # 但是通过 CSS 属性（比如 display: none 或 visibility: hidden）被隐藏，那么它就不是 "可见"。
             captcha_displayed = captcha_image.is_displayed()
         except Exception as e:
-            print(f'没有找到验证码元素: {str(e.msg)}')
+            print(f'没有找到验证码元素: {str(e.msg)}') # type: ignore
         if seller_container is not None and captcha_image is not None and captcha_displayed:
             # 获取url
             try:
                 image_url = captcha_image.get_attribute('src')
-                captcha_code_seller = 'D:\Code\# OUTPUT\Amazon_Refactor\验证码\卖家精灵'
+                captcha_code_seller = 'D:\\Code\\# OUTPUT\\Amazon_Refactor\\验证码\\卖家精灵'
                 captcha_code_seller_path = os.path.join(captcha_code_seller, 'temp.jpg')
                 # 判断url类型并下载
                 #analyze_url_and_save_image(image_url, captcha_code_seller_path)
@@ -113,22 +117,40 @@ def captcha_element_display(driver, xpath_name):
                     new_filename = f"{pic_str}_{datetime.datetime.now().strftime('%Y%m%d_%H%M')}.jpg"
                     captcha_code_seller_path_new = os.path.join(captcha_code_seller, new_filename)
                     os.rename(captcha_code_seller_path, captcha_code_seller_path_new)
-                    input = seller_container.find_element(By.XPATH, "../input[contains(@class, 'text-uppercase)]")
-                    button = seller_container.find_element(By.XPATH, "../button[contains(@class, 'btn-ext btn-ext-primary)]")
+                    input = seller_container.find_element(By.XPATH, ".//input[contains(@class, 'text-uppercase')]")
+                    button = seller_container.find_element(By.XPATH, ".//button[contains(@class, 'btn-ext btn-ext-primary')]")
                     input.send_keys(pic_str)
                     actions = ActionChains(driver)
                     actions.move_to_element(button)
                     actions.click(button)
                     actions.perform()
-                    sleep(3)
+                    sleep(2)
                     seller_div = driver.find_element(By.XPATH, "//div[@id='seller-sprite-extension-app']")
-                    seller_footer_cloes = seller_div.find_element(By.XPATH, "../div[contains(@class, 'sign-in-close']")
-                    actions.move_to_element(seller_footer_cloes)
-                    actions.click(seller_footer_cloes)
+                    seller_footer = seller_div.find_element(By.XPATH, ".//div[contains(@class, 'ext-main-container')]")
+                    seller_footer_close = seller_footer.find_element(By.XPATH, ".//div[contains(@class, 'sign-in-close')]")
+                    actions.move_to_element(seller_footer_close)
+                    actions.click(seller_footer_close)
                     actions.perform()
-                    sleep(3)
+                    sleep(2)
+                    #seller_main = driver.find_element(By.XPATH, "//div[@id='dp']")
+                    # 设置一个最大等待时间，直到该元素被找到或者达到最大等待时间。
+                    # 如果在最大等待时间内元素被找到了，则立即返回元素，并继续执行后面的代码。
+                    # 如果超过最大等待时间，元素还未被找到，则抛出一个超时的异常。
+                    seller_main = WebDriverWait(driver, 10).until(
+                        EC.presence_of_element_located((By.XPATH, "//div[@id='dp']")))
+                    seller_info = seller_main.find_element(By.XPATH, ".//div[@class='quick-view-integrate-listing']")
+                    seller_bar = seller_info.find_element(By.XPATH, ".//div[@class='tab-list d-flex align-items-center']")
+                    seller_bar_list = seller_bar.find_elements(By.XPATH, "./div")
+                    actions.move_to_element(seller_bar_list[0])
+                    actions.click(seller_bar_list[0])
+                    actions.perform()
+                    sleep(1)
+                    actions.move_to_element(seller_bar_list[1])
+                    actions.click(seller_bar_list[1])
+                    actions.perform()
+                    sleep(1)
             except Exception as e:
-                print(f'没有完成验证码验证: {str(e.msg)}')
+                print(f'没有完成验证码验证: {str(e.msg)}') # type: ignore
 
 #- 'int32','int64' - 整数型
 #- 'float32','float64' - 浮点数型
@@ -170,16 +192,16 @@ driver.execute_script("window.open()") #通过执行JavaScript,在当前浏览�
 
 def start_chrome_program():
     # 定义程序路径和参数
-    program_path = "D:\Code\chrome-win\chrome.exe"
+    program_path = "D:\\Code\\chrome-win\\chrome.exe"
     program_args = [
         "--remote-debugging-port=9222",
-        "--user-data-dir=E:\Code\selenium\AutomationProfile 114 Seller 9222",
+        "--user-data-dir=E:\\Code\\selenium\\AutomationProfile 114 Seller 9222",
     ]
     #subprocess.run()默认情况下是一个阻塞函数，它会等待子进程完成后才继续执行后面的代码。在你这个案例中，可能是因为浏览器在打开过程中，由于某种原因（比如网络连接）造成了程序的阻塞。
     #要解决这个问题，你可以将subprocess.run()替换为subprocess.Popen()，Popen()是一个非阻塞函数，一旦执行就会创建子进程并立即返回，而不会等待子进程结束。
     # 使用 subprocess 执行外部命令
     #subprocess.Popen([program_path] + program_args)
-    shortcut_path = "D:\Code\chrome - New Selenium 2.lnk"
+    shortcut_path = "D:\\Code\\chrome - New Selenium 2.lnk"
     os.startfile(shortcut_path)
     
     #subprocess.run(shortcut_path)
@@ -215,6 +237,7 @@ def start_driver(timeout=5):
 def OpenDriver(driver, wait, valurl: str):
     # 打开valurl网页
     for i in range(1,5):
+        new_driver = None
         try:
             print(('driver.get(valurl)'))
             driver.get(valurl)
@@ -234,17 +257,17 @@ def OpenDriver(driver, wait, valurl: str):
             options.debugger_address = '127.0.0.1:9222'
             options.browser_version = '114.0.5734.0'
             service = Service(executable_path=r'D:\Code\chromedriver_win32\114\chromedriver.exe')
-            driver = webdriver.Chrome(service=service, options=options)
-            driver.maximize_window()
-            driver.get("https://www.baidu.com")
-            driver.execute_script("window.open()")
-            wait = WebDriverWait(driver, 30)
+            new_driver = webdriver.Chrome(service=service, options=options)
+            new_driver.maximize_window()
+            new_driver.get("https://www.baidu.com")
+            new_driver.execute_script("window.open()")
+            wait = WebDriverWait(new_driver, 30)
             wait.until(EC.presence_of_all_elements_located((By.TAG_NAME, 'body'))) 
             # 如果driver启动失败，则抛出异常
-            if driver is not None:
-                return driver
+            if new_driver is not None:
+                driver = new_driver
             else:
-                print("Failed to start driver within timeout.")
+                print(f"Failed to start driver within timeout: {i}.")
     # 1. 初始化WebDriverWait,设置最长等待时间为5秒:
     wait = WebDriverWait(driver, 30)
     # 2. 使用until方法设置等待条件:
@@ -734,7 +757,7 @@ def GarbInfo(driver, wait,
             actions.click(seller_Linechart)
             actions.perform()
             wait.until(EC.presence_of_all_elements_located((By.XPATH, '//*[@id="quick-view-page"]/div[2]/div/div[2]/div/div/div/div/div/div[1]/canvas')))
-            seller_canvas = seller_parent.find_element(By.XPATH, '//*[@id="quick-view-page"]/div[2]/div/div[2]/div/div/div/div/div/div[1]/canvas')
+            seller_canvas = seller_parent.find_element(By.XPATH, './/canvas')
             seller_selector = seller_parent.find_element(By.CLASS_NAME,'rang-div')
             seller_selector_p = seller_selector.find_elements(By.TAG_NAME,'p')
             if seller_selector_p[-2].find_element(By.XPATH,'./span').text == '最近一年':
@@ -766,7 +789,7 @@ def GarbInfo(driver, wait,
             #!
             #sheet_array.loc[index, 'isKeepa'] = False
         except Exception as e:
-            print('No Seller element found')
+            print(f'No Seller element found:{str(e.msg)}') # type: ignore
         
         
     if is_Seller:
@@ -774,7 +797,121 @@ def GarbInfo(driver, wait,
             seller_parent = driver.find_element(By.XPATH,'//*[@id="quick-view-page"]')
             # 回滚至顶部
             driver.execute_script("window.scrollTo(0, 0);")
-            seller_logo = driver.find_element(By.XPATH,'//*[@id="quick-view-page"]/div[1]/div[1]/a/img')
+            # 使用图像识别
+            seller_chart = seller_parent.find_element(By.XPATH, ".//div[@class='quick-view-integrate-listing']")
+            seller_canvas = seller_chart.find_element(By.XPATH, ".//canvas")
+            # 截屏并处理
+            screenshot = driver.get_screenshot_as_png()
+            screenshot = Image.open(BytesIO(screenshot))
+            # 截取特定元素的部分
+            location = seller_canvas.location
+            size = seller_canvas.size
+            left = location['x']
+            top = location['y']
+            right = location['x'] + size['width']
+            bottom = location['y'] + size['height']
+            screenshot = screenshot.crop((left, top, right, bottom))
+            # 匹配图像
+            template_path = 'D:\\Code\\# OUTPUT\\Amazon_Refactor\\image\\download.png'  # 替换成你的模板图像路径
+            screenshot_array = np.array(screenshot)
+            template = cv2.imread(template_path,0)
+            res = cv2.matchTemplate(cv2.cvtColor(screenshot_array, cv2.COLOR_BGR2GRAY), template, cv2.TM_CCOEFF_NORMED)
+            _, _, _, max_loc = cv2.minMaxLoc(res)
+            x, y = max_loc
+            # 点击操作
+            template_width, template_height = template.shape[::-1]  # 获取模板的宽度和高度
+            center_x = x + template_width / 2  # 计算模板中心的 x 坐标
+            center_y = y + template_height / 2  # 计算模板中心的 y 坐标
+            # 在识别出的位置画红点
+            #screenshot_array = cv2.circle(screenshot_array, (center_x, center_y), radius=5, color=(0, 0, 255), thickness=-1)
+            # 保存图像到指定位置
+            #output_path = 'D:\\Code\\# OUTPUT\\Amazon_Refactor\\output.png' # 替换为你的路径
+            #cv2.imwrite(output_path, screenshot_array)
+            
+            #actions = webdriver.ActionChains(driver)
+            #relative_x = center_x - location['x']
+            #relative_y = center_y - location['y']
+            # 使用 '//' 符号进行整数（向下）除法运算，其结果将直接被转化为整数，这意味着除法运算结果的小数部分被“舍去”。
+            # 而使用 '/' 符号进行除法运算时，即便两个操作数都是整数，其结果也会是浮点数（即保留小数部分）
+            # selenium版本4.4.3move_to_element_with_offset是基于中心点
+            halfWidth = seller_canvas.size['width'] / 2
+            halfHeight = seller_canvas.size['height'] / 2
+            relative_x = center_x - halfWidth 
+            relative_y = center_y - halfHeight
+            actions.move_to_element_with_offset(seller_canvas, relative_x, relative_y)
+            actions.click()
+            actions.perform()
+            print("点击下载")
+            # 通过JavaScript代码在网页上画红点
+            absolute_x = left + center_x
+            absolute_y = top + center_y
+            
+            
+            script_old = """
+            var element = document.elementFromPoint({absolute_x}, {absolute_y}); // 获取指定位置的元素
+            var clickEvent= document.createEvent('MouseEvents'); // 创建一个点击事件
+            clickEvent.initMouseEvent(
+                'click', true, true, window, 0, 0, 0, {absolute_x}, {absolute_y}, false, false,
+                false, false, 0, null
+            ); // 初始化点击事件
+            element.dispatchEvent(clickEvent); // 派发点击事件
+            """
+            script_old2 = f"""
+            var evt = new MouseEvent('click', {{
+                view: window,
+                bubbles: true,
+                cancelable: true,
+                clientX: {absolute_x},
+                clientY: {absolute_y}
+            }});
+            document.elementFromPoint({absolute_x}, {absolute_y}).dispatchEvent(evt);
+            """
+            #script = script.format(absolute_x=absolute_x, absolute_y=absolute_y) # Python中格式化JavaScript代码
+            #driver.execute_script(script) # 执行JavaScript代码
+            # 用execute_script执行JS代码
+            '''driver.execute_script("""
+                function simulateClick(x, y) {
+                    var clickEvent = new MouseEvent('click', {
+                        'view': window,
+                        'bubbles': true,
+                        'cancelable': true,
+                        'clientX': x,
+                        'clientY': y
+                    });
+                    document.elementFromPoint(x, y).dispatchEvent(clickEvent);
+                }
+                simulateClick(arguments[0], arguments[1]);
+            """, absolute_x, absolute_y)  # 在页面的(100, 200)位置模拟一次点击'''
+            driver.execute_script("""
+                var x = arguments[0];
+                var y = arguments[1];
+                function simulateClick(x, y) {
+                    var event = new MouseEvent('click', {
+                        clientX: x,
+                        clientY: y,
+                        button: 0,  // 0 表示鼠标左键
+                        buttons: 1,  // 1 表示鼠标左键按下
+                        view: window
+                    });
+                    document.elementFromPoint(x, y).dispatchEvent(event);
+                }
+                simulateClick(x, y);
+            """, absolute_x, absolute_y)
+            
+            
+            script = f"var ele = document.createElement('div');" \
+                    f"ele.style.position = 'fixed';" \
+                    f"ele.style.left = '{absolute_x}px';" \
+                    f"ele.style.top = '{absolute_y}px';" \
+                    f"ele.style.width = '10px';" \
+                    f"ele.style.height = '10px';" \
+                    f"ele.style.background = 'red';" \
+                    f"document.body.appendChild(ele);"
+            driver.execute_script(script)
+            sleep(2)
+            
+            # 卖家精灵图标
+            '''seller_logo = driver.find_element(By.XPATH,'//*[@id="quick-view-page"]/div[1]/div[1]/a/img')
             # 悬停至元素上
             actions.move_to_element(seller_logo)
             actions.perform()
@@ -787,12 +924,12 @@ def GarbInfo(driver, wait,
             actions.move_by_offset(1412, 180)
             actions.click()
             actions.perform()
-            time.sleep(2)
+            time.sleep(2)'''
             # 如何处理下载失败？\
             # !
             #sheet_array.loc[index, 'isSeller'] = False
         except Exception as e:
-            print('No Rank Download Fialure element found')
+            print(f'No Rank Download Fialure element found:{str(e.msg)}')# type: ignore
 
     image_main1500 = []
     # 9. 如果参数isBigImg为真，获取1000+的大尺寸主图
