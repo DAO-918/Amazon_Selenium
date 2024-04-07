@@ -688,40 +688,32 @@ def GarbInfo(driver, wait,
     # 循环点击左边的小图
     ul = driver.find_element(By.XPATH, '//*[@id="altImages"]/ul')
     image_left1 = None
-    image_flag = 0
-    for li in ul.find_elements(By.TAG_NAME, 'li'):
-        # 如果li的class包含template或aok-hidden或videoThumbnail,继续下一个循环
-        if (
-            'template' in li.get_attribute('class')  # type: ignore
-            or 'aok-hidden' in li.get_attribute('class')  # type: ignore
-            or 'videoThumbnail' in li.get_attribute('class')  # type: ignore
-            or 'sellersprite' in li.get_attribute('id')  # type: ignore
-        ):
-            continue
-        span = li.find_element(By.XPATH, './span/span')
-
-        if image_flag == 0:
-            image_left1 = span
-        image_flag += 1
-
-        if isSmallImg:
-            # 使用ActionsChains点击input
-            if input is not None:
-                actions.move_to_element(span)
-                actions.click(span)
-            actions.perform()
-            time.sleep(0.2)
     # 获取所有450尺寸的主图链接
     image_main450 = []
     if isSmallImg:
-        ul = driver.find_element(By.XPATH, '//*[@id="main-image-container"]/ul')
-        for li in ul.find_elements(By.XPATH, 'li'):
-            if 'image' in li.get_attribute('class') and 'item' in li.get_attribute( # type: ignore
-                'class'
-            ): # type: ignore
-                img = li.find_element(By.XPATH, './span/span/div/img')
-                img_src = img.get_attribute('src')
-                image_main450.append(img_src)
+        for li in ul.find_elements(By.TAG_NAME, 'li'):
+            # 如果li的class包含template或aok-hidden或videoThumbnail,继续下一个循环
+            if (
+                'template' in li.get_attribute('class')  # type: ignore
+                or 'aok-hidden' in li.get_attribute('class')  # type: ignore
+                or 'videoThumbnail' in li.get_attribute('class')  # type: ignore
+                or 'sellersprite' in li.get_attribute('id')  # type: ignore
+            ):
+                continue
+            span = li.find_element(By.XPATH, './span/span')
+            actions.move_to_element(span)
+            actions.click(span)
+            actions.perform()
+            sleep(1)
+            ul = driver.find_element(By.XPATH, '//*[@id="main-image-container"]/ul')
+            for li in ul.find_elements(By.XPATH, 'li'):
+                if 'image' in li.get_attribute('class') and 'item' in li.get_attribute( # type: ignore
+                        'class'
+                ): # type: ignore
+                    img = li.find_element(By.XPATH, './span/span/div/img')
+                    img_src = img.get_attribute('src')
+                    image_main450.append(img_src)
+                    break
         print(image_main450)
 
     # 遍历父元素下所有元素
