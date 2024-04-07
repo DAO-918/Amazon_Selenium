@@ -741,6 +741,7 @@ def GarbInfo(driver, wait,
                 or 'aok-hidden' in li.get_attribute('class')  # type: ignore
                 or 'videoThumbnail' in li.get_attribute('class')  # type: ignore
                 or 'sellersprite' in li.get_attribute('id')  # type: ignore
+                or 'pos-360' in li.get_attribute('class')  # type: ignore
             ):
                 continue
             span = li.find_element(By.XPATH, './span/span')
