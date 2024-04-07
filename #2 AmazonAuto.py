@@ -117,9 +117,9 @@ def captcha_element_display(driver, xpath_name):
                     new_filename = f"{pic_str}_{datetime.datetime.now().strftime('%Y%m%d_%H%M')}.jpg"
                     captcha_code_seller_path_new = os.path.join(captcha_code_seller, new_filename)
                     os.rename(captcha_code_seller_path, captcha_code_seller_path_new)
-                    form = seller_container.find_element(By.XPATH, ".//form[@name='form_signin', method='post']")
-                    input = form.find_element(By.XPATH, ".//input[contains(@class, 'text-uppercase')]")
-                    button = form.find_element(By.XPATH, ".//button[contains(@class, 'btn-ext btn-ext-primary')]")
+                    form = seller_container.find_element(By.XPATH, ".//form[@name='form_signin' and @method='post']")
+                    input = form.find_element(By.XPATH, ".//input[@type='text' and contains(@class, 'text-uppercase')]")
+                    button = form.find_element(By.XPATH, ".//button[@type='submit' and @class='btn-ext btn-ext-primary' and text()='我不是机器人']")
                     actions = ActionChains(driver)
                     actions.move_to_element(input)
                     actions.perform()
@@ -683,67 +683,6 @@ def GarbInfo(driver, wait,
         print('No dict_data_Info element found')
     else:
         print(f'dict_data_Info : {dict_data_Info}')
-
-        # 8. 图片 父元素//*[@id="altImages"]/ul
-    # 循环点击左边的小图
-    ul = driver.find_element(By.XPATH, '//*[@id="altImages"]/ul')
-    image_left1 = None
-    # 获取所有450尺寸的主图链接
-    image_main450 = []
-    if isSmallImg:
-        for li in ul.find_elements(By.TAG_NAME, 'li'):
-            # 如果li的class包含template或aok-hidden或videoThumbnail,继续下一个循环
-            if (
-                'template' in li.get_attribute('class')  # type: ignore
-                or 'aok-hidden' in li.get_attribute('class')  # type: ignore
-                or 'videoThumbnail' in li.get_attribute('class')  # type: ignore
-                or 'sellersprite' in li.get_attribute('id')  # type: ignore
-            ):
-                continue
-            span = li.find_element(By.XPATH, './span/span')
-            actions.move_to_element(span)
-            actions.click(span)
-            actions.perform()
-            sleep(1)
-            ul = driver.find_element(By.XPATH, '//*[@id="main-image-container"]/ul')
-            for li in ul.find_elements(By.XPATH, 'li'):
-                if 'image' in li.get_attribute('class') and 'item' in li.get_attribute( # type: ignore
-                        'class'
-                ): # type: ignore
-                    img = li.find_element(By.XPATH, './span/span/div/img')
-                    img_src = img.get_attribute('src')
-                    image_main450.append(img_src)
-                    break
-        print(image_main450)
-
-    # 遍历父元素下所有元素
-    elements = []
-
-    def get_elements(parent):
-        children = parent.find_elements(By.XPATH, './*')
-        for child in children:
-            elements.append(child)
-            get_elements(child)
-        return elements
-
-    # 8.1 获取视频数量
-    video_count = 0
-    try:
-        video_text = driver.find_element(By.XPATH, '//*[@id="videoCount"]').text.strip()
-        if video_text == "VIDEO":
-            video_count = 1
-        elif video_text == "VIDEOS":
-            video_count = 1
-        elif 'VIDEOS' in video_text:
-            # \d+ 表示匹配一个或多个数字,这是一个正则表达式,而不是一个字符串。所以这里使用转义序列 \d 是正确的,不会产生无效的转义序列错误。
-            # 但是,Pylance 分析器误以为这是一个字符串,所以报告了无效的转义序列错误。
-            # 在字符串开头添加 r 会让 Pylance 知道这是一个原始字符串,实际上是正则表达式,可以安全地使用转义序列。
-            numbers = re.findall(r'\d+', video_text)
-            video_count = int(''.join(numbers))
-    except Exception:
-        print('No videoCount element found')
-    else:
-        print(f'videoCount : {video_count}')
         
     if is_Keepa:
         try:
@@ -787,7 +726,66 @@ def GarbInfo(driver, wait,
             #sheet_array.loc[index, 'isKeepa'] = False
         except Exception as e:
             print(f'No Seller element found:{str(e.msg)}') # type: ignore
-        
+
+        # 8. 图片 父元素//*[@id="altImages"]/ul
+    # 循环点击左边的小图
+    ul = driver.find_element(By.XPATH, '//*[@id="altImages"]/ul')
+    image_left1 = None
+    # 获取所有450尺寸的主图链接
+    image_main450 = []
+    if isSmallImg:
+        for li in ul.find_elements(By.TAG_NAME, 'li'):
+            # 如果li的class包含template或aok-hidden或videoThumbnail,继续下一个循环
+            if (
+                'template' in li.get_attribute('class')  # type: ignore
+                or 'aok-hidden' in li.get_attribute('class')  # type: ignore
+                or 'videoThumbnail' in li.get_attribute('class')  # type: ignore
+                or 'sellersprite' in li.get_attribute('id')  # type: ignore
+            ):
+                continue
+            span = li.find_element(By.XPATH, './span/span')
+            actions.move_to_element(span)
+            actions.click(span)
+            actions.perform()
+            sleep(1)
+        ul = driver.find_element(By.XPATH, '//*[@id="main-image-container"]/ul')
+        for li in ul.find_elements(By.XPATH, 'li'):
+            if 'image' in li.get_attribute('class') and 'item' in li.get_attribute( # type: ignore
+                    'class'
+            ): # type: ignore
+                img = li.find_element(By.XPATH, './span/span/div/img')
+                img_src = img.get_attribute('src')
+                image_main450.append(img_src)
+        print(image_main450)
+
+    # 遍历父元素下所有元素
+    elements = []
+
+    def get_elements(parent):
+        children = parent.find_elements(By.XPATH, './*')
+        for child in children:
+            elements.append(child)
+            get_elements(child)
+        return elements
+
+    # 8.1 获取视频数量
+    video_count = 0
+    try:
+        video_text = driver.find_element(By.XPATH, '//*[@id="videoCount"]').text.strip()
+        if video_text == "VIDEO":
+            video_count = 1
+        elif video_text == "VIDEOS":
+            video_count = 1
+        elif 'VIDEOS' in video_text:
+            # \d+ 表示匹配一个或多个数字,这是一个正则表达式,而不是一个字符串。所以这里使用转义序列 \d 是正确的,不会产生无效的转义序列错误。
+            # 但是,Pylance 分析器误以为这是一个字符串,所以报告了无效的转义序列错误。
+            # 在字符串开头添加 r 会让 Pylance 知道这是一个原始字符串,实际上是正则表达式,可以安全地使用转义序列。
+            numbers = re.findall(r'\d+', video_text)
+            video_count = int(''.join(numbers))
+    except Exception:
+        print('No videoCount element found')
+    else:
+        print(f'videoCount : {video_count}')
         
     if is_Seller:
         try:
