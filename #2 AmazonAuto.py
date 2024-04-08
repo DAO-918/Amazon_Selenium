@@ -114,48 +114,56 @@ def captcha_element_display(driver, xpath_name):
                 pic_str = result['pic_str']
                 # 识别成功重命名验证码图片
                 if err_no == 0: 
-                    new_filename = f"{pic_str}_{datetime.datetime.now().strftime('%Y%m%d_%H%M')}.jpg"
-                    captcha_code_seller_path_new = os.path.join(captcha_code_seller, new_filename)
-                    os.rename(captcha_code_seller_path, captcha_code_seller_path_new)
-                    form = seller_container.find_element(By.XPATH, ".//form[@name='form_signin' and @method='post']")
-                    input = form.find_element(By.XPATH, ".//input[@type='text' and contains(@class, 'text-uppercase')]")
-                    button = form.find_element(By.XPATH, ".//button[@type='submit' and @class='btn-ext btn-ext-primary' and text()='我不是机器人']")
-                    actions = ActionChains(driver)
-                    actions.move_to_element(input)
-                    actions.perform()
-                    input.send_keys(pic_str)
-                    actions.move_to_element(button)
-                    actions.click(button)
-                    actions.perform()
-                    sleep(2)
-                    seller_div = driver.find_element(By.XPATH, "//div[@id='seller-sprite-extension-app']")
-                    seller_footer = seller_div.find_element(By.XPATH, ".//div[contains(@class, 'ext-main-container')]")
-                    seller_footer_header = seller_footer.find_element(By.XPATH, ".//header[contains(@class, 'navbar-ext')]")
-                    seller_right_bar = seller_footer_header.find_element(By.XPATH, ".//div[contains(@class, 'right-form-close')]")
-                    seller_right_close = seller_right_bar.find_element(By.XPATH, ".//div[contains(@class, 'sign-in-close')]")
-                    actions.move_to_element(seller_right_close)
-                    actions.click(seller_right_close)
-                    actions.perform()
-                    sleep(2)
-                    #seller_main = driver.find_element(By.XPATH, "//div[@id='dp']")
-                    # 设置一个最大等待时间，直到该元素被找到或者达到最大等待时间。
-                    # 如果在最大等待时间内元素被找到了，则立即返回元素，并继续执行后面的代码。
-                    # 如果超过最大等待时间，元素还未被找到，则抛出一个超时的异常。
-                    seller_main = WebDriverWait(driver, 10).until(
-                        EC.presence_of_element_located((By.XPATH, "//div[@id='dp']")))
-                    seller_info = seller_main.find_element(By.XPATH, ".//div[@class='quick-view-integrate-listing']")
-                    seller_bar = seller_info.find_element(By.XPATH, ".//div[@class='tab-list d-flex align-items-center']")
-                    seller_bar_list = seller_bar.find_elements(By.XPATH, "./div")
-                    actions.move_to_element(seller_bar_list[0])
-                    actions.click(seller_bar_list[0])
-                    actions.perform()
-                    sleep(1)
-                    actions.move_to_element(seller_bar_list[1])
-                    actions.click(seller_bar_list[1])
-                    actions.perform()
-                    sleep(1)
+                    try:
+                        new_filename = f"{pic_str}_{datetime.datetime.now().strftime('%Y%m%d_%H%M')}.jpg"
+                        captcha_code_seller_path_new = os.path.join(captcha_code_seller, new_filename)
+                        os.rename(captcha_code_seller_path, captcha_code_seller_path_new)
+                        form = seller_container.find_element(By.XPATH, ".//form[@name='form_signin' and @method='post']")
+                        input = form.find_element(By.XPATH, ".//input[@type='text' and contains(@class, 'text-uppercase')]")
+                        button = form.find_element(By.XPATH, ".//button[@type='submit' and @class='btn-ext btn-ext-primary' and text()='我不是机器人']")
+                        # text不是一个方法，而是一个属性，去掉后面的括号()。
+                        print(button.text)
+                        if button.text != '我不是机器人':
+                            print("ERROR 获取button错误")
+                        actions = ActionChains(driver)
+                        actions.move_to_element(input)
+                        actions.perform()
+                        input.send_keys(pic_str)
+                        actions.move_to_element(button)
+                        actions.click(button)
+                        actions.perform()
+                        sleep(2)
+                        seller_div = driver.find_element(By.XPATH, "//div[@id='seller-sprite-extension-app']")
+                        seller_footer = seller_div.find_element(By.XPATH, ".//div[contains(@class, 'ext-main-container')]")
+                        seller_footer_header = seller_footer.find_element(By.XPATH, ".//header[contains(@class, 'navbar-ext')]")
+                        seller_right_bar = seller_footer_header.find_element(By.XPATH, ".//div[contains(@class, 'right-form-close')]")
+                        seller_right_close = seller_right_bar.find_element(By.XPATH, ".//div[contains(@class, 'sign-in-close')]")
+                        print(seller_right_close.text)
+                        actions.move_to_element(seller_right_close)
+                        actions.click(seller_right_close)
+                        actions.perform()
+                        sleep(2)
+                        #seller_main = driver.find_element(By.XPATH, "//div[@id='dp']")
+                        # 设置一个最大等待时间，直到该元素被找到或者达到最大等待时间。
+                        # 如果在最大等待时间内元素被找到了，则立即返回元素，并继续执行后面的代码。
+                        # 如果超过最大等待时间，元素还未被找到，则抛出一个超时的异常。
+                        seller_main = WebDriverWait(driver, 10).until(
+                            EC.presence_of_element_located((By.XPATH, "//div[@id='dp']")))
+                        seller_info = seller_main.find_element(By.XPATH, ".//div[@class='quick-view-integrate-listing']")
+                        seller_bar = seller_info.find_element(By.XPATH, ".//div[@class='tab-list d-flex align-items-center']")
+                        seller_bar_list = seller_bar.find_elements(By.XPATH, "./div")
+                        actions.move_to_element(seller_bar_list[0])
+                        actions.click(seller_bar_list[0])
+                        actions.perform()
+                        sleep(1)
+                        actions.move_to_element(seller_bar_list[1])
+                        actions.click(seller_bar_list[1])
+                        actions.perform()
+                        sleep(1)
+                    except Exception as e:
+                        print(f'没有完成点击操作: {str(e)}') # type: ignore
             except Exception as e:
-                print(f'没有完成验证码验证: {str(e.msg)}') # type: ignore
+                print(f'没有完成验证码验证: {str(e)}') # type: ignore
 
 #- 'int32','int64' - 整数型
 #- 'float32','float64' - 浮点数型

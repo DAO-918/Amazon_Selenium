@@ -71,7 +71,7 @@ def excel_auto(file_name):
     sheet_info_path = info_file_path + 'ASIN_Array_信息汇总.xlsx'
     sheet_info = pd.read_excel(sheet_info_path, sheet_name='Sheet1')
 
-    sheet_ASIN_path = os.path.join('D:\AutoRPA\产品信息\产品竞品', file_name)
+    sheet_ASIN_path = os.path.join('D:\\AutoRPA\\产品信息\\产品竞品', file_name)
 
     # 当data_only=True时，工作簿将只加载公式单元格的计算结果，而不加载公式本身
     # 如果需要修改或操作公式，使用默认的data_only=False参数来加载工作簿。
@@ -107,7 +107,7 @@ def excel_auto(file_name):
 
         # 图片
         #pic_floder = f'{picture_file_path}{ASIN}'
-        pic_floder = os.path.join('D:\AutoRPA\产品图片', str(ASIN))
+        pic_floder = os.path.join('D:\\AutoRPA\\产品图片', str(ASIN))
         pic_files = get_files_by_name(pic_floder, '450')
         if pic_files is not None:
             pyxl_draw(sheet_ASIN_path, wb, 'Sheet1', ASIN, pic_files, row_index, 11, min(len(pic_files), 8), 46, 8, False)  # type: ignore
