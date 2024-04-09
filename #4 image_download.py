@@ -93,7 +93,7 @@ def download(pic_url, file_path, cookie, row, column):
     for i in range(RETRY_TIMES):
         try:
             # make request with headers and cookies
-            res = response = requests.get(pic_url, headers=headers, timeout=5)
+            res = response = requests.get(pic_url, headers=headers, timeout=20)
             #print(res.status_code)
             # https://blog.csdn.net/wantpython_king/article/details/132185135
             # 在使用requests请求网页，并将图片保存到本地时，然后通过openyxl插入到excel，在最后的wb.save()时报错keyError: ‘.webp’，通过筛选找到报错的图片，发现本地有这个图片并且能正常打开，就是不能正常插入到excel中。

@@ -702,6 +702,13 @@ def GarbInfo(driver, wait,
             actions.perform()
             wait.until(EC.presence_of_all_elements_located((By.XPATH, '//*[@id="quick-view-page"]/div[2]/div/div[2]/div/div/div/div/div/div[1]/canvas')))
             seller_canvas = seller_parent.find_element(By.XPATH, './/canvas')
+            # //*[@id="quick-view-page"]/div[2]/div/div[2]/div/div/div/div/div[2]/div
+            try:
+                wait.until(EC.presence_of_all_elements_located((By.XPATH, '//*[@id="quick-view-page"]/div[2]/div/div[2]/div/div/div/div/div[2]/div')))
+                seller_selector = WebDriverWait(seller_parent, 20).until(
+                    EC.presence_of_element_located((By.CLASS_NAME, 'rang-div')))
+            except Exception as e:
+                print(str(e))
             seller_selector = seller_parent.find_element(By.CLASS_NAME,'rang-div')
             seller_selector_p = seller_selector.find_elements(By.TAG_NAME,'p')
             if seller_selector_p[-2].find_element(By.XPATH,'./span').text == '最近一年':
